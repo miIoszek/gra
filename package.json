@@ -1,0 +1,14 @@
+{
+  "name": "gra",
+  "private": true,
+  "workspaces": [
+    "apps/server",
+    "apps/client"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:server": "npm run dev -w apps/server",
+    "dev:client": "npm run dev -w apps/client",
+    "build": "npm run build --workspaces --if-present"
+  }
+}

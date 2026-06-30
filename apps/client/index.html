@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SejmRoom</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #1a1a2e;
+        color: #eee;
+        font-family: system-ui, sans-serif;
+      }
+
+      #nick-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10, 10, 20, 0.95);
+        z-index: 10;
+      }
+
+      #nick-screen.hidden {
+        display: none;
+      }
+
+      .nick-panel {
+        background: #16213e;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        min-width: 320px;
+      }
+
+      .nick-panel h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.5rem;
+      }
+
+      .nick-panel p {
+        margin: 0 0 1.25rem;
+        color: #aaa;
+        font-size: 0.9rem;
+      }
+
+      #nick-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #333;
+        border-radius: 4px;
+        background: #0f0f23;
+        color: #fff;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      #join-btn {
+        width: 100%;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 4px;
+        background: #e94560;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+
+      #join-btn:hover {
+        background: #ff6b6b;
+      }
+
+      #join-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      #error-msg {
+        color: #ff6b6b;
+        font-size: 0.85rem;
+        min-height: 1.2rem;
+        margin-top: 0.75rem;
+      }
+
+      #game-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="nick-screen">
+      <div class="nick-panel">
+        <h1>SejmRoom</h1>
+        <p>Wpisz nick, aby dołączyć do gry multiplayer.</p>
+        <input
+          id="nick-input"
+          type="text"
+          maxlength="24"
+          placeholder="Twój nick"
+          autocomplete="off"
+        />
+        <button id="join-btn" type="button">Dołącz</button>
+        <div id="error-msg"></div>
+      </div>
+    </div>
+    <div id="game-container"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
