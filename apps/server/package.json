@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "npm run build -w @gra/shared && tsc",
     "start": "node dist/index.js"
   },
   "dependencies": {
     "@colyseus/schema": "^4.0.27",
+    "@gra/shared": "*",
     "colyseus": "^0.17.10",
     "cors": "^2.8.5",
     "express": "^4.21.2"

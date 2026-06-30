@@ -1,24 +1,19 @@
 import { Client, Room } from "colyseus";
+import {
+  PLAYER_HEIGHT,
+  PLAYER_WIDTH,
+  SEJM_KLASYCZNY,
+  canPlacePlayer,
+  clampToWorld,
+  randomSpawnInRoom,
+  resolveMovement,
+} from "@gra/shared";
 import { Player, SejmState } from "../schema/SejmState.js";
 
-const WORLD_WIDTH = 800;
-const WORLD_HEIGHT = 600;
-const PLAYER_WIDTH = 32;
-const PLAYER_HEIGHT = 32;
+const MAP = SEJM_KLASYCZNY;
 const MAX_STEP = 16;
 
 type MoveMessage = { x: number; y: number };
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
-
-function clampPosition(x: number, y: number): { x: number; y: number } {
-  return {
-    x: clamp(x, 0, WORLD_WIDTH - PLAYER_WIDTH),
-    y: clamp(y, 0, WORLD_HEIGHT - PLAYER_HEIGHT),
-  };
-}
 
 function clampStep(
   currentX: number,
@@ -61,11 +56,30 @@ export class SejmRoom extends Room<{ state: SejmState }> {
         return;
       }
 
-      const clampedTarget = clampPosition(message.x, message.y);
-      const next = clampStep(player.x, player.y, clampedTarget.x, clampedTarget.y);
+      const boundedTarget = clampToWorld(
+        MAP,
+        message.x,
+        message.y,
+        PLAYER_WIDTH,
+        PLAYER_HEIGHT,
+      );
+      const stepped = clampStep(player.x, player.y, boundedTarget.x, boundedTarget.y);
+      const resolved = resolveMovement(
+        MAP,
+        player.x,
+        player.y,
+        stepped.x,
+        stepped.y,
+        PLAYER_WIDTH,
+        PLAYER_HEIGHT,
+      );
 
-      player.x = next.x;
-      player.y = next.y;
+      if (!canPlacePlayer(MAP, resolved.x, resolved.y, PLAYER_WIDTH, PLAYER_HEIGHT)) {
+        return;
+      }
+
+      player.x = resolved.x;
+      player.y = resolved.y;
     });
   }
 
@@ -75,14 +89,13 @@ export class SejmRoom extends Room<{ state: SejmState }> {
         ? options.nick.trim().slice(0, 24)
         : `Gracz-${client.sessionId.slice(0, 4)}`;
 
-    const spawnX = Math.random() * (WORLD_WIDTH - PLAYER_WIDTH);
-    const spawnY = Math.random() * (WORLD_HEIGHT - PLAYER_HEIGHT);
+    const spawn = randomSpawnInRoom(MAP, MAP.spawnRoomId, PLAYER_WIDTH, PLAYER_HEIGHT);
 
     const player = new Player();
     player.id = client.sessionId;
     player.nick = nick;
-    player.x = spawnX;
-    player.y = spawnY;
+    player.x = spawn.x;
+    player.y = spawn.y;
 
     this.state.players.set(client.sessionId, player);
   }

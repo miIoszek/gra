@@ -3,11 +3,12 @@
   "private": true,
   "workspaces": [
     "apps/server",
-    "apps/client"
+    "apps/client",
+    "packages/shared"
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
-    "dev:server": "npm run dev -w apps/server",
+    "dev:server": "npm run build -w @gra/shared && npm run dev -w apps/server",
     "dev:client": "npm run dev -w apps/client",
     "build": "npm run build --workspaces --if-present"
   }

@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run build -w @gra/shared && tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@colyseus/sdk": "^0.17.43",
+    "@gra/shared": "*",
     "phaser": "^3.87.0"
   },
   "devDependencies": {

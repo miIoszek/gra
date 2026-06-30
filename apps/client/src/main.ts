@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { joinSejmRoom } from "./network/joinRoom";
 import { GameScene } from "./scenes/GameScene";
-import { WORLD_HEIGHT, WORLD_WIDTH } from "./config";
+import { VIEWPORT_HEIGHT, VIEWPORT_WIDTH } from "./config";
 
 const nickScreen = document.getElementById("nick-screen")!;
 const nickInput = document.getElementById("nick-input") as HTMLInputElement;
@@ -19,8 +19,8 @@ async function startGame(room: Awaited<ReturnType<typeof joinSejmRoom>>): Promis
 
   game = new Phaser.Game({
     type: Phaser.AUTO,
-    width: WORLD_WIDTH,
-    height: WORLD_HEIGHT,
+    width: VIEWPORT_WIDTH,
+    height: VIEWPORT_HEIGHT,
     parent: "game-container",
     backgroundColor: "#0f3460",
     scene: [GameScene],
