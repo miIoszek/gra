@@ -17,16 +17,25 @@ function showError(message: string): void {
 async function startGame(room: Awaited<ReturnType<typeof joinSejmRoom>>): Promise<void> {
   nickScreen.classList.add("hidden");
 
+  if (game) {
+    game.destroy(true);
+    game = null;
+  }
+
   game = new Phaser.Game({
     type: Phaser.AUTO,
     width: VIEWPORT_WIDTH,
     height: VIEWPORT_HEIGHT,
     parent: "game-container",
     backgroundColor: "#0f3460",
-    scene: [GameScene],
   });
 
-  game.scene.start("GameScene", { room });
+  game.scene.add("GameScene", GameScene, true, { room });
+
+  const canvas = game.canvas;
+  canvas.setAttribute("tabindex", "0");
+  canvas.style.outline = "none";
+  canvas.focus();
 }
 
 async function handleJoin(): Promise<void> {

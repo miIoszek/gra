@@ -44,63 +44,103 @@ export class GameScene extends Phaser.Scene {
   private desiredX = 0;
   private desiredY = 0;
   private cameraReady = false;
+  private playersReady = false;
 
   constructor() {
     super("GameScene");
   }
 
-  init(data: { room: Room }): void {
+  init(data: { room?: Room }): void {
+    if (!data?.room) {
+      throw new Error("GameScene requires a Colyseus room instance.");
+    }
+
     this.room = data.room;
     this.localSessionId = this.room.sessionId;
   }
 
   create(): void {
     this.cameras.main.setBackgroundColor("#0f3460");
+    this.cameras.main.setBounds(0, 0, MAP.worldWidth, MAP.worldHeight);
 
     new MapRenderer(this, MAP);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
+    this.input.keyboard!.on("keydown", () => {
+      this.game.canvas.focus();
+    });
 
-    if (this.room.state) {
-      this.setupPlayers();
+    this.input.on("pointerdown", () => {
+      this.game.canvas.focus();
+    });
+
+    this.waitForPlayers();
+  }
+
+  private waitForPlayers(): void {
+    const attach = (): void => {
+      const state = this.room.state as { players?: Map<string, PlayerState> } | undefined;
+      if (!state?.players) {
+        return;
+      }
+
+      this.setupPlayers(state.players);
+    };
+
+    if (this.room.state?.players) {
+      attach();
       return;
     }
 
-    this.room.onStateChange.once(() => {
-      this.setupPlayers();
-    });
+    this.room.onStateChange.once(attach);
   }
 
-  private setupPlayers(): void {
-    const $ = getStateCallbacks(this.room);
-    const players = (this.room.state as { players: Map<string, PlayerState> }).players;
-
-    const localPlayer = players.get(this.localSessionId);
-    if (localPlayer) {
-      this.desiredX = localPlayer.x;
-      this.desiredY = localPlayer.y;
-      this.focusCamera(localPlayer.x, localPlayer.y);
+  private setupPlayers(players: Map<string, PlayerState>): void {
+    if (this.playersReady) {
+      return;
     }
 
-    $(this.room.state).players.onAdd((player: PlayerState, sessionId: string) => {
-      this.addPlayer(sessionId, player);
+    const $ = getStateCallbacks(this.room);
 
-      $(player).listen("x", () => {
-        this.syncPlayerTarget(sessionId, player);
-      });
-      $(player).listen("y", () => {
-        this.syncPlayerTarget(sessionId, player);
-      });
-      $(player).listen("nick", () => {
-        const entry = this.players.get(sessionId);
-        if (entry) {
-          entry.label.setText(player.nick);
-        }
-      });
+    players.forEach((player, sessionId) => {
+      this.registerPlayer($, sessionId, player);
+    });
+
+    $(this.room.state).players.onAdd((player: PlayerState, sessionId: string) => {
+      this.registerPlayer($, sessionId, player);
     });
 
     $(this.room.state).players.onRemove((_player: PlayerState, sessionId: string) => {
       this.removePlayer(sessionId);
+    });
+
+    this.playersReady = true;
+  }
+
+  private registerPlayer(
+    $: ReturnType<typeof getStateCallbacks>,
+    sessionId: string,
+    player: PlayerState,
+  ): void {
+    this.addPlayer(sessionId, player);
+
+    if (sessionId === this.localSessionId) {
+      this.desiredX = player.x;
+      this.desiredY = player.y;
+      this.focusCamera(player.x, player.y);
+    }
+
+    $(player).listen("x", () => {
+      this.syncPlayerTarget(sessionId, player);
+    });
+    $(player).listen("y", () => {
+      this.syncPlayerTarget(sessionId, player);
+    });
+    $(player).listen("nick", () => {
+      const entry = this.players.get(sessionId);
+      if (entry) {
+        entry.label.setText(player.nick);
+      }
     });
   }
 
@@ -111,7 +151,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private focusCamera(x: number, y: number): void {
-    this.cameras.main.setBounds(0, 0, MAP.worldWidth, MAP.worldHeight);
     this.cameras.main.setSize(VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
     this.cameras.main.centerOn(
       x + PLAYER_WIDTH / 2,
